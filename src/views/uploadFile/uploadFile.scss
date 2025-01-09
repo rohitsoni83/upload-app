@@ -1,0 +1,40 @@
+.upload-file-container {
+  .sticky-box {
+    position: sticky;
+    top: 0;
+    z-index: 200;
+    background-color: #fff;
+  }
+
+  .nav-row-style {
+    display: flex;
+    align-items: center;
+    box-shadow: 0 1px 7px #0000000f, 0 1px 3px #00000005 !important;
+
+    > *:not(:first-child) {
+      margin-left: 16px;
+    }
+  }
+
+  .nav-column-style {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .file-log {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    aspect-ratio: auto;
+  }
+
+  .image-item-list {
+    border-radius: 4px;
+    padding: 4px;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+  }
+}
