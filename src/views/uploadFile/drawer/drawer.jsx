@@ -1,4 +1,4 @@
-import { useRef, useCallback } from "react";
+import { useRef, useCallback, useState } from "react";
 import {
   Box,
   Button,
@@ -6,11 +6,14 @@ import {
   Drawer,
   IconButton,
   Stack,
+  Tooltip,
   Typography,
 } from "@mui/material";
 
+import ImageCropper from "./cropperCompo/CropImg";
+
 import CloseIcon from "@mui/icons-material/Close";
-import { DrawerButtonConfig } from "../helper/constant";
+import { DrawerButtonConfig, tooltipConfig } from "../helper/constant";
 
 import "./drawer.scss";
 
@@ -28,7 +31,9 @@ const DrawerComponent = ({
   className = "upload-file-drawer",
   transitionDuration = { enter: 600, exit: 400 },
 }) => {
+  const [isCrop, setIsCrop] = useState(false);
   const canvasRef = useRef(null);
+  const cropperRef = useRef(null);
 
   const transformImage = useCallback(
     (transformFn) => {
@@ -84,6 +89,21 @@ const DrawerComponent = ({
     });
   };
 
+  const toggleCrop = () => {
+    setIsCrop((prev) => !prev);
+  };
+
+  const handleCrop = () => {
+    if (typeof cropperRef.current?.cropper !== "undefined") {
+      const imageUrl = cropperRef.current?.cropper
+        .getCroppedCanvas()
+        .toDataURL();
+
+      setSelectedFile((prev) => ({ ...prev, imageUrl }));
+      toggleCrop();
+    }
+  };
+
   const actionBtnHandler = ({ target }) => {
     const id = target.closest(".action-btn")?.id;
     const actions = {
@@ -91,6 +111,7 @@ const DrawerComponent = ({
       flipHorizontal: handleFlipHorizontal,
       flipVertical: handleFlipVertical,
       replaceImage: handleReplaceImage,
+      crop: toggleCrop,
     };
     if (actions[id]) actions[id]();
   };
@@ -119,35 +140,54 @@ const DrawerComponent = ({
 
       <Divider />
 
-      <Box className="content-box">
-        <Box height="auto">
-          <canvas hidden ref={canvasRef} />
-          <img
-            width="100%"
-            height="auto"
-            alt="selected-img"
-            src={selectedFile["imageUrl"]}
-            style={{
-              objectFit: "contain",
-              maxHeight: "480px",
-            }}
-          />
-        </Box>
+      <Stack className="content-box" direction="row" spacing="8px">
+        {!isCrop && (
+          <Box height="auto" flexGrow={1}>
+            <canvas hidden ref={canvasRef} />
+            <img
+              width="100%"
+              height="auto"
+              alt="selected-img"
+              src={selectedFile["imageUrl"]}
+              style={{
+                objectFit: "contain",
+                maxHeight: "480px",
+              }}
+            />
+          </Box>
+        )}
 
-        <Stack spacing="8px" alignItems={"flex-end"} onClick={actionBtnHandler}>
-          {Object.entries(DrawerButtonConfig).map(([key, label], index) => (
-            <Button
-              id={key}
-              size="small"
-              variant="contained"
-              className="action-btn"
-              key={`action-btn${index + 1}`}
-            >
-              {label}
-            </Button>
-          ))}
-        </Stack>
-      </Box>
+        {isCrop && (
+          <ImageCropper
+            cropperRef={cropperRef}
+            selectedFile={selectedFile}
+            cropHandler={handleCrop}
+            onClose={toggleCrop}
+          />
+        )}
+
+        {!isCrop && (
+          <Stack
+            spacing="2px"
+            alignItems={"flex-end"}
+            onClick={actionBtnHandler}
+          >
+            {Object.entries(DrawerButtonConfig).map(([key, icon], index) => (
+              <IconButton
+                id={key}
+                size={"small"}
+                color={"primary"}
+                className={"action-btn"}
+                key={`action-btn${index + 1}`}
+              >
+                <Tooltip arrow placement="left" title={tooltipConfig[key]}>
+                  {icon}
+                </Tooltip>
+              </IconButton>
+            ))}
+          </Stack>
+        )}
+      </Stack>
 
       <Divider />
       <Box p="12px 16px" className="action-btn">
